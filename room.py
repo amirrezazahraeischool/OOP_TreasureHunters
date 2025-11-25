@@ -11,25 +11,47 @@ class Pair:
 Dimention = Pair
 Location = Pair
 
-class Map:
-    def __init__(self, world):
-        self.world = world
-                        #        width          height
-        self.dimention = Dimention(len(world[0]), len(world))
 
-    def isInMap(self, location):
+class Entity:
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
+
+    def __str__(self):
+        """only intended for debug purposes!"""
+        return f"Entity({self.name}, {self.description})"
+
+
+class LiveObject(Entity):
+    def __init__(self, health = 0, luck = 0):
+        self.health = health
+        self.luck = luck
+    def move():
+        pass
+
+
+class CollectionTile(Entity):
+
+    def __init__(self, name, description, tiles, parent_collection = None):
+        Entity.__init__(self, name, description)
+        self.tiles = tiles
+        self.parent_collection = parent_collection
+                        #        width          height
+        self.dimention = Dimention(len(tiles[0]), len(tiles))
+
+    def isInCollection(self, location):
         if location.first >= 0 and location.first < self.dimention.second:
             if location.second >= 0 and location.second < self.dimention.first:
                 return True
         return False
     
-    def printMap(self, player):
+    def printCollection(self, player):
         # max length of string in each column
         max_lengths = [0] * self.dimention.first
 
         for j in range(self.dimention.first):
             for i in range(self.dimention.second):
-                curr_str_len = len(self.world[i][j].name)
+                curr_str_len = len(self.tiles[i][j].name)
                 if max_lengths[j] < curr_str_len:
                     max_lengths[j] = curr_str_len
         
@@ -44,15 +66,44 @@ class Map:
                 ind_diff = max_lengths[j] - len(self.world[i][j].name)
                 print(self.world[i][j].name + ind_diff * ' ' + ", ", end = "")
             print()
-        
-class Player:
+
+class Item(Entity):
+    def __init__(self, name, user_only_description):
+        Entity.__init__(self, name, user_only_description)
+
+
+class Potion(Item):
+    def __init__(self, fake_name,
+                       fake_description,
+                       real_name,
+                       real_description,
+                       health, luck):
+        Item.__init__(self, fake_name, fake_description)
+        self.health = health
+        self.luck = luck
+        self.real_name = real_name
+        self.real_description = real_description
+
+    def interact(self, live_object: LiveObject):
+        live_object.health += self.health
+        live_object.luck += self.luck
+
+    def printRealName(self):
+        print(f"you just drank a bottle of {self.real_name}.")
+        print(f"{self.real_description}.")
+
+    def printRealName(self):
+        print(f"you just drank a bottle of {self.real_name}.")
+        print(f"{self.real_description}.")
+
+class Player(LiveObject):
     def __init__(self, name, which_map, location):
+        LiveObjects.__init__(self)
         self.name = name
         self.current_map = which_map
         self.location = location
 
     def move(self, command):
-
         # deep copy to avoid the loc_copy be 
         # merely a reference.
         loc_copy = Location(self.location.first, self.location.second)
@@ -68,22 +119,11 @@ class Player:
             case _:
                 return False
 
-        if map.isInMap(self.location):
+        if self.current_map.isInCollection(self.location):
             return True
         else:
             self.location = loc_copy
             return False
-
-
-
-class Tile:
-    def __init__(self, name, user_only_description):
-        self.name = name
-        self.description = user_only_description
-
-    def __str__(self):
-        return f"name = {self.name.title()}\n" \
-               f"description = {self.description}\n"
     
 
 def validityChecker():
@@ -109,14 +149,16 @@ openingIsland = Tile("opening island", "if you ever found this island, you can c
 entrance = Tile("entrance island", "enter the cruel world of figita here.")
 exit_world = Tile("Exit", "exit the figita world from here.")
 water = Tile("water", "vast ocean spanning the earth.")
-map = Map([
-    [ catIsland, water,       bank,         water], 
+map = CollectionTile(
+    "cat world", "this is cat world", 
+   [[ catIsland, water,       bank,         water], 
     [     water, water,      water, openingIsland],
     [weaponBase, water, exit_world,         water],    
     [     water, water,      water,      entrance],
-])
+], None)
 player_start = Location(3, 3)
 MOVEMENT_OPTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "VIEW MAP", "EXIT"]
+
 
 def main():
 
