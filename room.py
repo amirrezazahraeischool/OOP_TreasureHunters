@@ -1,3 +1,4 @@
+import random
 
 
 class Pair:
@@ -23,7 +24,8 @@ class Entity:
 
 
 class LiveObject(Entity):
-    def __init__(self, health = 0, luck = 0):
+    def __init__(self, name, description, health = 0, luck = 0):
+        Entity.__init__(self, name, description)
         self.health = health
         self.luck = luck
     def move():
@@ -60,11 +62,11 @@ class CollectionTile(Entity):
 
         print("Map:")
         print(f"Your location: ({px + 1}, {py + 1})")
-        print(f"your are currently at {self.world[px][py].name}")
+        print(f"your are currently at {self.tiles[px][py].name}")
         for i in range(self.dimention.second):
             for j in range(self.dimention.first):
-                ind_diff = max_lengths[j] - len(self.world[i][j].name)
-                print(self.world[i][j].name + ind_diff * ' ' + ", ", end = "")
+                ind_diff = max_lengths[j] - len(self.tiles[i][j].name)
+                print(self.tiles[i][j].name + ind_diff * ' ' + ", ", end = "")
             print()
 
 class Item(Entity):
@@ -88,17 +90,18 @@ class Potion(Item):
         live_object.health += self.health
         live_object.luck += self.luck
 
-    def printRealName(self):
-        print(f"you just drank a bottle of {self.real_name}.")
-        print(f"{self.real_description}.")
+    def printFakeName(self):
+        print(f"oh, there is a bottle of {self.fake_name}.")
+        print(f"{self.fake_description}.")
+        
 
     def printRealName(self):
         print(f"you just drank a bottle of {self.real_name}.")
         print(f"{self.real_description}.")
 
 class Player(LiveObject):
-    def __init__(self, name, which_map, location):
-        LiveObjects.__init__(self)
+    def __init__(self, name, description, which_map, location):
+        LiveObject.__init__(self, name, description)
         self.name = name
         self.current_map = which_map
         self.location = location
@@ -142,13 +145,13 @@ def printMenu(menu):
         print(f" - {item}")
 
 
-catIsland = Tile("cat island", "an island full of cats")
-weaponBase = Tile("weapon base", "take any weapon you want from here")
-bank = Tile("Bank", "The most trusted map across the waters.")
-openingIsland = Tile("opening island", "if you ever found this island, you can collect all the treasure at once magicelly")
-entrance = Tile("entrance island", "enter the cruel world of figita here.")
-exit_world = Tile("Exit", "exit the figita world from here.")
-water = Tile("water", "vast ocean spanning the earth.")
+catIsland = Item("cat island", "an island full of cats")
+weaponBase = Item("weapon base", "take any weapon you want from here")
+bank = Item("Bank", "The most trusted map across the waters.")
+openingIsland = Item("opening island", "if you ever found this island, you can collect all the treasure at once magicelly")
+entrance = Item("entrance island", "enter the cruel world of figita here.")
+exit_world = Item("Exit", "exit the figita world from here.")
+water = Item("water", "vast ocean spanning the earth.")
 map = CollectionTile(
     "cat world", "this is cat world", 
    [[ catIsland, water,       bank,         water], 
@@ -162,7 +165,7 @@ MOVEMENT_OPTIONS = ["UP", "DOWN", "LEFT", "RIGHT", "VIEW MAP", "EXIT"]
 
 def main():
 
-    player = Player("", map, player_start)
+    player = Player("", "", map, player_start)
 
     # get player name
     while(True):
@@ -184,7 +187,7 @@ def main():
                 print(f"have a good day {player.name}!")
                 break
             elif option == "VIEW MAP":
-                map.printMap(player)
+                player.current_map.printCollection(player)
             else:
                 if not player.move(option):
                     print("Error: invalid move. You went out of map!")
